@@ -21,7 +21,6 @@ const elements = {
   sendButton: document.getElementById("sendButton"),
   micButton: document.getElementById("micButton"),
   searchInput: document.getElementById("searchInput"),
-  routingStatus: document.getElementById("routingStatus"),
 };
 
 const applySearch = (notes) => {
@@ -67,12 +66,9 @@ const attachNoteToEvent = (note) => {
   }));
 };
 
-const setRoutingStatus = (message, tone = "muted") => {
-  if (!elements.routingStatus) {
-    return;
-  }
-  elements.routingStatus.textContent = message;
-  elements.routingStatus.dataset.tone = tone;
+const setLlmStatus = (message, tone = "muted") => {
+  elements.llmStatus.textContent = message;
+  elements.llmStatus.dataset.tone = tone;
 };
 
 const parseStructuredEntry = (payload, rawText) => {
@@ -125,103 +121,30 @@ const routeEntry = ({ type, text, tags, datetime, reminderKind, trigger }) => {
       noteIds: [],
     };
     state.data = addEntry(state.data, "events", event);
-    return;
-  }
-
-  if (type === "reminder") {
+  } else if (type === "reminder") {
+    const trigger = extractReminderContext(text);
     const reminder = {
       id: createId(),
       text,
       createdAt,
       tags,
-      kind: reminderKind ?? "time",
-      trigger: trigger ?? null,
+      kind: trigger ? "context" : "time",
+      trigger,
     };
     state.data = addEntry(state.data, "reminders", reminder);
-    return;
-  }
-
-  const note = {
-    id: createId(),
-    text,
-    createdAt,
-    tags,
-  };
-  state.data = addEntry(state.data, "notes", note);
-  attachNoteToEvent(note);
-};
-
-const requestStructuredEntry = async (text) => {
-  const response = await fetch("/api/route", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ text }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText);
-  }
-
-  const data = await response.json();
-  return data.data;
-};
-
-const localRoute = (text) => {
-  const type = inferType(text);
-  const tags = extractTags(text);
-
-  if (type === "event") {
-    const dateInfo = parseDateTime(text);
-    return {
-      type,
+  } else {
+    const note = {
+      id: createId(),
       text,
+      createdAt,
       tags,
-      datetime: dateInfo?.iso ?? null,
     };
-  }
-
-  if (type === "reminder") {
-    return {
-      type,
-      text,
-      tags,
-      reminderKind: extractReminderContext(text) ? "context" : "time",
-      trigger: extractReminderContext(text),
-    };
-  }
-
-  return { type, text, tags };
-};
-
-const handleSubmit = async () => {
-  const rawText = elements.mainInput.value.trim();
-  if (!rawText) {
-    return;
-  }
-
-  elements.sendButton.disabled = true;
-  setRoutingStatus("Routing…", "muted");
-
-  try {
-    const payload = await requestStructuredEntry(rawText);
-    const parsed = parseStructuredEntry(payload, rawText);
-    if (parsed) {
-      routeEntry(parsed);
-      setRoutingStatus("Routed by server", "success");
-    } else {
-      setRoutingStatus("Server response invalid, using local rules", "warning");
-      routeEntry(localRoute(rawText));
-    }
-  } catch (error) {
-    console.error(error);
-    setRoutingStatus("Server routing failed, using local rules", "warning");
-    routeEntry(localRoute(rawText));
+    state.data = addEntry(state.data, "notes", note);
+    attachNoteToEvent(note);
   }
 
   elements.mainInput.value = "";
+  elements.sendButton.disabled = true;
   render();
 };
 
@@ -275,5 +198,4 @@ const bindEvents = () => {
 
 bindEvents();
 bindSpeechInput();
-setRoutingStatus("Server routing enabled", "success");
 render();

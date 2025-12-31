@@ -8,7 +8,6 @@ The app is intentionally minimal and split into clear modules:
 
 - `index.html` + `styles.css`: static shell and visual layout.
 - `src/app.js`: input orchestration, routing, and UI wiring.
-- `server.js`: minimal HTTP server and OpenAI routing endpoint.
 - `src/inference.js`: rule-based intent + date parsing.
 - `src/tags.js`: auto-tagging (dates, topics, people).
 - `src/storage.js`: localStorage persistence.
@@ -17,11 +16,9 @@ The app is intentionally minimal and split into clear modules:
 
 ### Inference rules (v0.1)
 
-- **Server routing (preferred)**: send the raw input to `/api/route` and expect a JSON payload with `type`, `datetime`, `tags`, and reminder metadata.
-- **Fallback rules** (server error):
-  - **Reminder**: starts with action verbs (call, pay, send, etc.) or includes “remind me / remember to”.
-  - **Calendar event**: any recognizable date/time phrase (“tomorrow”, “next Friday”, “4/12”, “3pm”).
-  - **Note**: everything else.
+- **Reminder**: starts with action verbs (call, pay, send, etc.) or includes “remind me / remember to”.
+- **Calendar event**: any recognizable date/time phrase (“tomorrow”, “next Friday”, “4/12”, “3pm”).
+- **Note**: everything else.
 
 ### Tags
 
@@ -31,23 +28,14 @@ The app is intentionally minimal and split into clear modules:
 
 ## Running locally
 
-Create a `.env` file with your API key:
+No build step required.
 
 ```bash
-OPENAI_API_KEY=sk-...
+# from the repo root
+python -m http.server 8000
 ```
 
-Start the server:
-
-```bash
-node server.js
-```
-
-Then open `http://localhost:3000` in your browser.
-
-## Security
-
-OpenAI credentials are read only on the server from `process.env.OPENAI_API_KEY`. The browser never receives or stores API keys.
+Then open `http://localhost:8000` in your browser.
 
 ## Product Principles
 
