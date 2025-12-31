@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Second-Brain</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>Second-Brain</h1>
+        <p class="subtitle">Capture → organize → recall. Zero bloat.</p>
+      </div>
+      <div class="search">
+        <input id="searchInput" type="search" placeholder="Search notes fast…" />
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="module">
+        <div class="module-header">
+          <h2>Notes</h2>
+          <span id="notesCount" class="count-pill">0</span>
+        </div>
+        <div id="notesList" class="cards"></div>
+      </section>
+
+      <section class="module">
+        <div class="module-header">
+          <h2>Calendar</h2>
+          <span id="eventsCount" class="count-pill">0</span>
+        </div>
+        <div id="eventsList" class="cards"></div>
+      </section>
+
+      <section class="module">
+        <div class="module-header">
+          <h2>Reminders</h2>
+          <span id="remindersCount" class="count-pill">0</span>
+        </div>
+        <div id="remindersList" class="cards"></div>
+      </section>
+    </main>
+
+    <div class="input-bar">
+      <div class="input-wrapper">
+        <button id="micButton" class="icon-button" title="Speak">
+          🎤
+        </button>
+        <textarea
+          id="mainInput"
+          placeholder="Type anything… “Lunch with Maya tomorrow at 1”"
+          rows="1"
+        ></textarea>
+        <button id="sendButton" class="primary">Send</button>
+      </div>
+      <div id="inputHint" class="hint">Enter to send · Shift+Enter for newline</div>
+    </div>
+
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>
