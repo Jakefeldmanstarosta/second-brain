@@ -2,15 +2,12 @@ import { loadState, addEntry, createId, updateEntry } from "./storage.js";
 import { inferType, parseDateTime, extractReminderContext } from "./inference.js";
 import { extractTags } from "./tags.js";
 import { renderNotes, renderEvents, renderReminders } from "./ui.js";
-import { requestStructuredEntry } from "./llm.js";
-import { loadSettings, saveSettings } from "./settings.js";
 
 const state = {
   data: loadState(),
   filters: {
     search: "",
   },
-  settings: loadSettings(),
 };
 
 const elements = {
@@ -24,9 +21,6 @@ const elements = {
   sendButton: document.getElementById("sendButton"),
   micButton: document.getElementById("micButton"),
   searchInput: document.getElementById("searchInput"),
-  apiKeyInput: document.getElementById("apiKeyInput"),
-  saveKeyButton: document.getElementById("saveKeyButton"),
-  llmStatus: document.getElementById("llmStatus"),
 };
 
 const applySearch = (notes) => {
@@ -127,92 +121,31 @@ const routeEntry = ({ type, text, tags, datetime, reminderKind, trigger }) => {
       noteIds: [],
     };
     state.data = addEntry(state.data, "events", event);
-    return;
-  }
-
-  if (type === "reminder") {
+  } else if (type === "reminder") {
+    const trigger = extractReminderContext(text);
     const reminder = {
       id: createId(),
       text,
       createdAt,
       tags,
-      kind: reminderKind ?? "time",
-      trigger: trigger ?? null,
+      kind: trigger ? "context" : "time",
+      trigger,
     };
     state.data = addEntry(state.data, "reminders", reminder);
-    return;
-  }
-
-  const note = {
-    id: createId(),
-    text,
-    createdAt,
-    tags,
-  };
-  state.data = addEntry(state.data, "notes", note);
-  attachNoteToEvent(note);
-};
-
-const handleSubmit = async () => {
-  const rawText = elements.mainInput.value.trim();
-  if (!rawText) {
-    return;
-  }
-
-  elements.sendButton.disabled = true;
-  setLlmStatus("Routing…", "muted");
-
-  const apiKey = state.settings.apiKey.trim();
-  if (apiKey) {
-    try {
-      const payload = await requestStructuredEntry({ apiKey, text: rawText });
-      const parsed = parseStructuredEntry(payload, rawText);
-      if (parsed) {
-        routeEntry(parsed);
-        setLlmStatus("Routed by LLM", "success");
-      } else {
-        setLlmStatus("LLM response invalid, using local rules", "warning");
-        routeEntry(localRoute(rawText));
-      }
-    } catch (error) {
-      console.error(error);
-      setLlmStatus("LLM failed, using local rules", "warning");
-      routeEntry(localRoute(rawText));
-    }
   } else {
-    setLlmStatus("Local rules (add API key for LLM)", "muted");
-    routeEntry(localRoute(rawText));
+    const note = {
+      id: createId(),
+      text,
+      createdAt,
+      tags,
+    };
+    state.data = addEntry(state.data, "notes", note);
+    attachNoteToEvent(note);
   }
 
   elements.mainInput.value = "";
+  elements.sendButton.disabled = true;
   render();
-};
-
-const localRoute = (text) => {
-  const type = inferType(text);
-  const tags = extractTags(text);
-
-  if (type === "event") {
-    const dateInfo = parseDateTime(text);
-    return {
-      type,
-      text,
-      tags,
-      datetime: dateInfo?.iso ?? null,
-    };
-  }
-
-  if (type === "reminder") {
-    return {
-      type,
-      text,
-      tags,
-      reminderKind: extractReminderContext(text) ? "context" : "time",
-      trigger: extractReminderContext(text),
-    };
-  }
-
-  return { type, text, tags };
 };
 
 const handleKeydown = (event) => {
@@ -261,23 +194,8 @@ const bindEvents = () => {
     state.filters.search = event.target.value;
     render();
   });
-  elements.saveKeyButton.addEventListener("click", () => {
-    state.settings.apiKey = elements.apiKeyInput.value.trim();
-    saveSettings(state.settings);
-    setLlmStatus(state.settings.apiKey ? "API key saved" : "API key cleared", "success");
-  });
-};
-
-const hydrateSettings = () => {
-  elements.apiKeyInput.value = state.settings.apiKey;
-  if (state.settings.apiKey) {
-    setLlmStatus("LLM routing enabled", "success");
-  } else {
-    setLlmStatus("Local rules (add API key for LLM)", "muted");
-  }
 };
 
 bindEvents();
 bindSpeechInput();
-hydrateSettings();
 render();

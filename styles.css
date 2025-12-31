@@ -25,13 +25,6 @@ body {
   gap: 16px;
 }
 
-.header-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-end;
-}
-
 h1 {
   margin: 0 0 4px;
   font-size: 28px;
@@ -49,62 +42,6 @@ h1 {
   border: 1px solid #d4d7dd;
   font-size: 14px;
   background: #fff;
-}
-
-.settings {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e4e6eb;
-  padding: 10px 12px;
-  min-width: 280px;
-  display: grid;
-  gap: 6px;
-  font-size: 12px;
-  color: #4a4f57;
-}
-
-.settings label {
-  font-weight: 600;
-}
-
-.settings-row {
-  display: flex;
-  gap: 8px;
-}
-
-.settings input {
-  flex: 1;
-  border-radius: 10px;
-  border: 1px solid #d4d7dd;
-  padding: 8px 10px;
-  font-size: 12px;
-}
-
-.secondary {
-  border: 1px solid #d4d7dd;
-  background: #f8fafc;
-  color: #111827;
-  padding: 8px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 12px;
-}
-
-.status {
-  font-size: 12px;
-}
-
-.status[data-tone="success"] {
-  color: #047857;
-}
-
-.status[data-tone="warning"] {
-  color: #b45309;
-}
-
-.status[data-tone="muted"] {
-  color: #6b7280;
 }
 
 .app-main {
@@ -270,15 +207,7 @@ textarea {
   }
 
   .app-main {
-    padding: 0 20px 200px;
+    padding: 0 20px 160px;
     grid-template-columns: 1fr;
-  }
-
-  .header-actions {
-    width: 100%;
-  }
-
-  .settings {
-    width: 100%;
   }
 }
