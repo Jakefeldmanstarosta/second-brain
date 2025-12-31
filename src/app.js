@@ -66,18 +66,51 @@ const attachNoteToEvent = (note) => {
   }));
 };
 
-const handleSubmit = () => {
-  const text = elements.mainInput.value.trim();
-  if (!text) {
-    return;
+const setLlmStatus = (message, tone = "muted") => {
+  elements.llmStatus.textContent = message;
+  elements.llmStatus.dataset.tone = tone;
+};
+
+const parseStructuredEntry = (payload, rawText) => {
+  if (!payload || typeof payload !== "object") {
+    return null;
   }
 
-  const type = inferType(text);
-  const createdAt = new Date().toISOString();
-  const tags = extractTags(text);
+  const type = payload.type;
+  if (!type || !["note", "event", "reminder"].includes(type)) {
+    return null;
+  }
+
+  const base = {
+    text: payload.text && typeof payload.text === "string" ? payload.text : rawText,
+    tags: Array.isArray(payload.tags) && payload.tags.length > 0 ? payload.tags : extractTags(rawText),
+  };
 
   if (type === "event") {
-    const dateInfo = parseDateTime(text);
+    return {
+      type,
+      ...base,
+      datetime: typeof payload.datetime === "string" ? payload.datetime : null,
+    };
+  }
+
+  if (type === "reminder") {
+    return {
+      type,
+      ...base,
+      reminderKind: payload.reminderKind === "context" ? "context" : "time",
+      trigger: typeof payload.trigger === "string" ? payload.trigger : null,
+    };
+  }
+
+  return { type, ...base };
+};
+
+const routeEntry = ({ type, text, tags, datetime, reminderKind, trigger }) => {
+  const createdAt = new Date().toISOString();
+
+  if (type === "event") {
+    const dateInfo = datetime ? { iso: datetime, label: "" } : parseDateTime(text);
     const event = {
       id: createId(),
       text,
